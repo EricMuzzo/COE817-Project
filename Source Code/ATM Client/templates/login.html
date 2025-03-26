@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ATM Client - Login</title>
+</head>
+<body>
+  <h1>ATM Client Login</h1>
+  <form method="post" action="/login">
+    <div>
+      <label for="username">Username:</label>
+      <input type="text" name="username" id="username" required>
+    </div>
+    <br>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password" required>
+    </div>
+    <br>
+    <div>
+      <button type="submit">Login</button>
+    </div>
+  </form>
+  <!-- Display any error messages passed from app.py -->
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+</body>
+</html>
