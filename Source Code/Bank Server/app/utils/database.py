@@ -2,7 +2,7 @@ import urllib.parse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import urllib
-from config import DB_CONNECTION_STRING
+from .config import DB_CONNECTION_STRING
 
 
 params = urllib.parse.quote_plus(DB_CONNECTION_STRING)
