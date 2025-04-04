@@ -1,0 +1,8 @@
+{"type": "deposit", "data": {"timestamp": "2025-04-02T20:15:46Z", "account_id": "1234", "amount": "100"}}
+{"type": "withdrawal", "data": {"timestamp": "2025-04-02T20:16:14Z", "account_id": "1234", "amount": "100"}}
+{"type": "balance", "data": {"timestamp": "2025-04-02T20:16:22Z", "account_id": "1234"}}
+{"type": "login", "data": {"timestamp": "2025-04-02T20:16:40Z", "account_id": "1234", "password": "1234"}}
+{"type": "login", "data": {"timestamp": "2025-04-04T03:05:04Z", "user_id": "1234", "account_id": "1234", "password": "1234"}}
+{"type": "deposit", "data": {"timestamp": "2025-04-04T03:05:11Z", "user_id": "1234", "account_id": "1234", "amount": "100"}}
+{"type": "withdrawal", "data": {"timestamp": "2025-04-04T03:05:15Z", "user_id": "1234", "account_id": "1234", "amount": "100"}}
+{"type": "balance", "data": {"timestamp": "2025-04-04T03:05:18Z", "user_id": "1234", "account_id": "1234"}}

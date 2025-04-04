@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ATM Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 20px;
+    }
+    .card {
+      margin-bottom: 20px;
+    }
+    .card-header {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">ATM Dashboard</a>
+      <div class="d-flex">
+        <a class="btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Account Details Section -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Account Details</h5>
+        <!-- Display only the account number -->
+        <p class="card-text">Account Number: <strong>{{ account_number }}</strong></p>
+      </div>
+    </div>
+
+    <!-- Transaction Options -->
+    <div class="row">
+      <!-- Deposit Form -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-success text-white">Deposit</div>
+          <div class="card-body">
+            <form id="depositForm" method="post" action="/transaction/deposit">
+              <div class="mb-3">
+                <label for="depositAmount" class="form-label">Amount</label>
+                <input type="number" step="0.01" class="form-control" id="depositAmount" name="amount" placeholder="Enter amount" required>
+              </div>
+              <button type="submit" class="btn btn-success w-100">Deposit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdrawal Form -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-danger text-white">Withdrawal</div>
+          <div class="card-body">
+            <form id="withdrawalForm" method="post" action="/transaction/withdrawal">
+              <div class="mb-3">
+                <label for="withdrawalAmount" class="form-label">Amount</label>
+                <input type="number" step="0.01" class="form-control" id="withdrawalAmount" name="amount" placeholder="Enter amount" required>
+              </div>
+              <button type="submit" class="btn btn-danger w-100">Withdraw</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance Inquiry -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-info text-white">Balance Inquiry</div>
+          <div class="card-body">
+            <p>Click the button below to check your current balance.</p>
+            <form id="balanceForm" method="post" action="/transaction/balance_inquiry">
+              <button type="submit" class="btn btn-info w-100">Check Balance</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Message Section -->
+    <div id="statusMessage" class="mt-3">
+      <!-- Status or error messages can be displayed here -->
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Additional JavaScript for WebSocket handling or form submission can be added here -->
+</body>
+</html>
