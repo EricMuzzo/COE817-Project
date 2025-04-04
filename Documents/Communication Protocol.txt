@@ -1,0 +1,28 @@
+Below is the proposed protocol for secure communication between the ATM client and bank server. The steps below clearly outline how each message is encrypted and decrypted, how the shared master key is derived, and the exact flow of data between the client and server.
+
+Establishing the WebSocket Connection:
+The ATM client initiates a WebSocket connection to a predefined endpoint (ws://BANK_SERVER_ADDRESS:8765). The bank server must host a matching WebSocket endpoint that listens for incoming connections. Once the connection is established, both parties are ready to exchange secure messages.
+
+Authentication and Key Distribution:
+a. The ATM client collects the User ID, Account Number, and Password from the user and constructs a JSON login message that includes a timestamp, client-generated nonce, and the credentials.
+b. This message is encrypted using a pre-shared key (PSK) with AES in CBC mode (using PKCS7 padding). The encrypted message is then sent over the WebSocket.
+c. The bank server decrypts the login message using the same PSK, validates the credentials, and generates its own secure nonce (bank_nonce). It then constructs a response message containing the bank_nonce and any required authentication tokens, encrypting this response with the PSK using AES in CBC mode.
+d. The ATM client decrypts the bank server’s response using the PSK, extracts the bank_nonce, and then combines the client_nonce and bank_nonce (for example, by concatenation). An HMAC-SHA256 function using the PSK is applied to this combination to compute a shared Master Secret. This Master Secret is then processed using HKDF with SHA-256 to derive two keys: one for encrypting/decrypting messages and one for generating and verifying HMACs.
+
+Secure Message Exchange for Transactions:
+a. For every transaction (deposit, withdrawal, or balance inquiry), the ATM client constructs a JSON message that includes a timestamp, user_id, account_id, and any transaction-specific data (such as the amount).
+b. The client encrypts the plaintext JSON message using AES in CBC mode with PKCS7 padding and the derived encryption key. It then computes a MAC over the ciphertext using HMAC-SHA256 with the derived MAC key. The secure message sent over the WebSocket contains the initialization vector (IV), the ciphertext, and the MAC.
+c. On receiving the secure message, the bank server first verifies the MAC using the derived MAC key. If the MAC verification passes, it decrypts the ciphertext using AES in CBC mode with the derived encryption key to recover the original JSON message.
+d. The bank server processes the transaction (such as updating account balances or returning the current balance) and sends back a response secured with the same method.
+
+Flow of Data Between Client and Server:
+
+The ATM client opens a WebSocket connection and sends an encrypted login message.
+
+The bank server decrypts the message, authenticates the user, and responds with its nonce, enabling both parties to compute the shared Master Secret and derive the encryption and MAC keys.
+
+For each transaction, the ATM client constructs a JSON message, encrypts it using AES in CBC mode with PKCS7 padding, and attaches an HMAC-SHA256 over the ciphertext. This secure message is sent to the bank server via the WebSocket.
+
+The bank server verifies the MAC, decrypts the message, processes the transaction, and returns a secure response following the same encryption and MAC scheme.
+
+Both parties ensure that all transmitted data is confidential and tamper-proof, as every message is encrypted with a shared key derived from the Master Secret and protected by a MAC.

@@ -1,6 +1,6 @@
 from decimal import Decimal
-from utils.database import SessionLocal
-from models import Account
+from ..utils.database import SessionLocal
+from ..models.models import Account
 
 async def get_balance(user_id: int):
     """Fetch the balance from the database for user `user_id`"""
@@ -63,6 +63,24 @@ async def create_user(account: Account)  -> Account:
         db.add(account)
         db.commit()
         db.refresh(account)
+        return account
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+        
+        
+async def authenticate_account(account_id: int, password: str):
+    """Performs the login for a provided account and password"""
+    db = SessionLocal()
+    
+    try:
+        account = db.query(Account).filter(Account.account_id == account_id).first()
+        if account is None:
+            raise ValueError(f"Could not find an account with id {account_id}")
+        if account.password != password:
+            return None
         return account
     except Exception as e:
         db.rollback()

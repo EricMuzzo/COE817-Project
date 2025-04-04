@@ -12,6 +12,12 @@ class AccountAction(BalanceRequest):
     amount: float
 
 
+class EncryptedMessage(BaseModel):
+    type: str
+    iv: str
+    ciphertext: str
+    
+
 from sqlalchemy import Column, Integer, String, Numeric, text
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -28,3 +34,8 @@ class Account(Base):
 
     def __repr__(self):
         return f"<Account(user_id={self.user_id}, name='{self.name}', account_id={self.account_id}, balance={self.balance})>"
+    
+class Client(BaseModel):
+    master_key: bytes
+    client_nonce: bytes
+    bank_nonce: bytes
