@@ -114,27 +114,26 @@ def login():
     """
     GET: Render the login page for user ID, account number, and password input.
     
-    POST: Process the login form submission.
+    POST: Process the form submission.
          - Collect the user ID, account number, and password.
-         - Construct a JSON message with type "login" including:
-             • timestamp
-             • user_id
-             • account_id (account number)
-             • password
+         - Check whether the "Login" or "Register" button was pressed.
+         - Construct a JSON message with "type" set to either "login" or "register" accordingly,
+           including a timestamp, user_id, account_id, and password.
          - Send the message via WebSocket to the bank server.
-           (The bank server is expected to decrypt, validate, and reply accordingly.)
          - Log the transaction and, for now, accept any credentials.
-         - Store the user ID and account number in the session and redirect to the dashboard.
+         - Save the user ID and account number in the session and redirect to the dashboard.
     """
     error = None
     if request.method == 'POST':
         user_id = request.form.get('user_id')
         account_number = request.form.get('account_number')
         password = request.form.get('password')
+        submit_action = request.form.get('submit')  # "login" or "register"
         
         if user_id and account_number and password:
+            message_type = submit_action  # set type to "login" or "register"
             login_data = {
-                "type": "login",
+                "type": message_type,
                 "data": {
                     "timestamp": get_timestamp(),
                     "user_id": user_id,
@@ -144,12 +143,11 @@ def login():
             }
             log_transaction(login_data)
             
-            # Send login message via WebSocket to bank server
+            # Send the message via WebSocket to the bank server.
             response = send_to_bank_server(login_data)
-            print("Bank server response for login:", response)
-            # (In a complete implementation, check response for successful authentication.)
+            print("Bank server response for", message_type + ":", response)
             
-            # Save user ID and account number in session and redirect to dashboard
+            # Save user ID and account number in session and redirect to dashboard.
             session['user_id'] = user_id
             session['account_number'] = account_number
             return redirect(url_for('dashboard'))
