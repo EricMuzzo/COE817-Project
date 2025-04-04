@@ -22,7 +22,10 @@
         <label for="password" class="form-label">Password:</label>
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter your Password" required>
       </div>
-      <button type="submit" class="btn btn-primary w-100">Login</button>
+      <div class="d-flex justify-content-between">
+        <button type="submit" name="submit" value="login" class="btn btn-primary w-45">Login</button>
+        <button type="submit" name="submit" value="register" class="btn btn-secondary w-45">Register</button>
+      </div>
     </form>
     {% if error %}
       <div class="alert alert-danger mt-3">{{ error }}</div>
