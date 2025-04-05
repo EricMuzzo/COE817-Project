@@ -1,6 +1,8 @@
 import json
-from ..models.models import BalanceRequest, AccountAction, Account, EncryptedMessage, Client
-from ..crud.accounts_crud import get_balance, deposit, withdraw, create_user, authenticate_account
+from sqlalchemy.exc import IntegrityError
+
+from ..models.models import BalanceRequest, AccountAction, Account, AccountModel, EncryptedMessage, Client, ServerException
+from ..crud.accounts_crud import get_account, deposit, withdraw, create_user, authenticate_account
 from ..security.helpers import compute_master_secret, generate_nonce, encrypt_with_key, fetch_shared_key
 from ..memory import state
 
@@ -28,7 +30,7 @@ def validate_encrypted_message(message: dict) -> EncryptedMessage | None:
 # Handler functions
 #=======================================
 
-async def handle_deposit(data):
+async def handle_deposit(data: dict) -> Account:
     """Websocket callback handler for the `deposit` action type"""
     
     deposit_request = AccountAction(**data)
@@ -36,26 +38,18 @@ async def handle_deposit(data):
     amount = deposit_request.amount
     
     try:
-        new_balance = await deposit(user_id, amount)
-        
-        if new_balance is None:
-            return {"status": "error", "message": f"Could not find user with id {user_id}"}
-            
         print(f"User {user_id} requested deposit for {amount}")
-        return {
-            "status": "success",
-            "message": {
-                "balance": f"{new_balance}"
-            }
-        }
+        account = await deposit(user_id, amount)
+        
+        if account is None:
+            raise Exception(f"Could not find user with id {user_id}")
+            
+        return account
     except Exception as e:
-        return {
-            "status": "failure",
-            "message": f"{e}"
-        }
+        raise ServerException(message=f"{e}")
 
     
-async def handle_withdrawl(data):
+async def handle_withdrawl(data: dict) -> Account:
     """Websocket callback handler for the `withdrawl` action type"""
     
     withdrawl_request = AccountAction(**data)
@@ -63,98 +57,86 @@ async def handle_withdrawl(data):
     amount = withdrawl_request.amount
         
     try:
-        new_balance = await withdraw(user_id, amount)
-        
-        if new_balance is None:
-            return {"status": "error", "message": f"Could not find user with id {user_id}"}
-        
         print(f"User {user_id} requested withdrawl for {amount}")
-        return {
-            "status": "success",
-            "message": {
-                "balance": f"{new_balance}"
-            }
-        }
+        account = await withdraw(user_id, amount)
+        
+        if account is None:
+            raise Exception(f"Could not find user with id {user_id}")
+        
+        return account
     
     except ValueError:
-        return {"status": "error", "message": "Insuffcient funds"}
+        raise Exception("Insuffcient funds")
     except Exception as e:
-        return {
-            "status": "failure",
-            "message": f"{e}"
-        }
+        raise ServerException(message=f"{e}")
     
     
-async def handle_balance(data):
+async def handle_balance(data: dict) -> Account:
     """Websocket callback handler for the `balance` action type"""
     
     balance_request = BalanceRequest(**data)
     user_id = balance_request.user_id
-    print(f"User {user_id} requested balance")
     
     try:
-        balance = await get_balance(user_id)
-        if balance is None:
-            return {"status": "error", "message": f"Could not find user with id {user_id}"}
-        return {
-            "status": "success",
-            "message": {
-                "balance": f"{balance}"
-            }
-        }
+        print(f"User {user_id} requested balance")
+        account = await get_account(user_id)
+        if account is None:
+            raise Exception(f"Could not find user with id {user_id}")
+        return account
     except Exception as e:
-        return {
-            "status": "failure",
-            "message": f"{e}"
-        }
+        ServerException(message=f"{e}")
     
     #After, add error handling if BalanceRequest init failed, indicated user sent bad format
 
 
-async def handle_registration(data: dict) -> Client | None:
+async def handle_registration(data: dict, nonce: bytes) -> Client | None:
     """Handles the login action. Uses the pre-shared master key for enc/decry"""
     try:
-        new_user = Account(**data)
-    except:
-        raise Exception("Incorrect or missing data passed. Please pass a name and password as strings")
+        new_user = Account(
+            username = data["username"],
+            name = data["name"],
+            password = data["password"]
+        )
+    except Exception as e:
+        raise Exception(f"Incorrect or missing data passed. {str(e)}")
         
     try:
         created_user = await create_user(new_user)
         if created_user is not None:
             bank_nonce = generate_nonce()
-            client_nonce = data["nonce"]
             psk = fetch_shared_key()
-            master_key = compute_master_secret(psk, client_nonce, bank_nonce)
-            return Client(master_key=master_key, client_nonce=client_nonce, bank_nonce=bank_nonce)
+            master_key = compute_master_secret(psk, nonce, bank_nonce)
+            return Client(account=AccountModel(**created_user.response_format()), master_key=master_key, client_nonce=nonce, bank_nonce=bank_nonce)
         
-        return None
+        raise Exception("An error occured while registering a new user")
+    except IntegrityError:
+        raise Exception("Database integrity error. User could not be created due to a conflicting record")
     except Exception as e:
+        print(str(e))
         raise Exception("An error occured while registering a new user")
         
         
-async def handle_login(data: dict) -> Client | None:
+async def handle_login(data: dict, nonce: bytes) -> Client:
     """Handles the login action. Uses the pre-shared master key for enc/decry
     Returns a `Client` object on success, otherwise `None`"""
     
-    psk = fetch_shared_key()
-    
     try:
-        account_id = data["account_id"]
+        username = data["username"]
         password = data["password"]
-        nonce = data["nonce"]
     except KeyError as ke:
-        raise KeyError("Missing required arguments: account_id (int), password (str), nonce (bytes)")
+        raise KeyError("Missing required arguments: username (str), password (str)")
     
     #Authenticate the client
-    account = await authenticate_account(account_id, password)
+    account = await authenticate_account(username, password)
     
     if account is None:
-        raise Exception("Incorrect account_id or password")
+        raise Exception("Incorrect username or password")
     
     #Create reply message
     bank_nonce = generate_nonce()
+    psk = fetch_shared_key()
     master_key = compute_master_secret(psk, nonce, bank_nonce)
-    client = Client(master_key=master_key, client_nonce=nonce, bank_nonce=bank_nonce)
+    client = Client(account=AccountModel(**account.response_format()), master_key=master_key, client_nonce=nonce, bank_nonce=bank_nonce)
     return client
     
 
