@@ -1,9 +1,86 @@
 {
-    "type": "deposit",
-    "data": {
-        "timestamp": "2025-03-26 08:19:32",
-        "user_id": 1,
-        "account_id": 1000,
-        "amount": 100.0
+    "register-request": {
+        "type": "register",
+        "nonce": "some nonce in hex",
+        "data": {
+            "timestamp": "2025-03-26 08:19:32",
+            "username": "johndoe",
+            "name": "John Doe",
+            "password": "password"
+        }
+    },
+    "register-response": {
+        "status": "success",
+        "message": "John Doe has been registered",
+        "bank_nonce": "base64.base64encode(nonce in bytes).decode()",
+        "data": {
+            "user_id": 1,
+            "username": "johndoe",
+            "name": "John Doe",
+            "account_id": 1001,
+            "balance": 0.00
+        }
+    },
+    "login-request": {
+        "type": "login",
+        "nonce": "some nonce in hex",
+        "data": {
+            "timestamp": "2025-03-26 08:19:32",
+            "username": "johndoe",
+            "password": "password"
+        }
+    },
+    "login-response": {
+        "status": "success",
+        "message": "John Doe has logged in",
+        "bank_nonce": "base64.base64encode(nonce in bytes).decode()",
+        "data": {
+            "user_id": 1,
+            "username": "johndoe",
+            "name": "John Doe",
+            "account_id": 1001,
+            "balance": 0.00
+        }
+    },
+    "balance-request": {
+        "type": "balance",
+        "data": {
+            "timestamp": "2025-03-26 08:19:32",
+            "user_id": 1,
+            "account_id": 1001
+        }
+    },
+    "balance-response": {
+        "status": "success",
+        "message": "deposit transaction was successful",
+        "balance": 0.00
+    },
+    "deposit-request": {
+        "type": "deposit",
+        "data": {
+            "timestamp": "2025-03-26 08:19:32",
+            "user_id": 1,
+            "account_id": 1001,
+            "amount": 100
+        }
+    },
+    "deposit-response": {
+        "status": "success",
+        "message": "deposit transaction was successful",
+        "balance": 100
+    },
+    "withdrawl-request": {
+        "type": "withdrawal",
+        "data": {
+            "timestamp": "2025-03-26 08:19:32",
+            "user_id": 1,
+            "account_id": 1001,
+            "amount": 25.0
+        }
+    },
+    "withdrawl-response": {
+        "status": "success",
+        "message": "withdrawal transaction was successful",
+        "balance": 75.0
     }
 }
