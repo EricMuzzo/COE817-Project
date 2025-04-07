@@ -78,4 +78,4 @@ def login():
     encrypted_request = helpers.encrypt_with_key(request_data)
     print("\n-------Login--------\n", json.dumps(encrypted_request))
 
-register_response()
+login()

@@ -15,9 +15,10 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 key_file_path = os.path.join(module_dir, "shared_key.key")
 
 
-def generate_key() -> bytes:
-    """Generates a random 32 byte key and saves it to a file `shared_key.key`"""
+def generate_key(path: str = "shared_key.key") -> bytes:
+    """Generates a random 32 byte key and saves it to a filepath"""
     key = os.urandom(32)
+    key_file_path = os.path.join(module_dir, path)
     with open(key_file_path, 'wb') as key_file:
         key_file.write(key)
     return key
@@ -26,6 +27,13 @@ def generate_key() -> bytes:
 def fetch_shared_key() -> bytes:
     """Fetches the 32 byte pre-shared key from the `shared_key.key` file"""
     with open(key_file_path, 'rb') as key_file:
+        return key_file.read()
+    
+
+def fetch_audit_key() -> bytes:
+    """Fetches the 32 byte audit key from the `audit_key.key` file"""
+    audit_key_file_path = os.path.join(module_dir, "audit_key.key")
+    with open(audit_key_file_path, 'rb') as key_file:
         return key_file.read()
 
 

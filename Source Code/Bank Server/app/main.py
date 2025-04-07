@@ -30,8 +30,12 @@ async def handle_client(websocket: websockets.ServerConnection):
             nonce = base64.b64decode(decrypted_cipher.get("nonce"))
             data = decrypted_cipher.get("data", {})
             
+            print(f"[CONNECTION {websocket.id}] Client requested {action} action")
+            
             if action in ["login", "register"]:
                 client = await ACTION_HANDLERS[action](data, nonce)
+                
+                log_transaction(client.account.user_id, action, datetime.now())
                 
                 # Derive session keys from master secret
                 encryption_key, mac_key = derive_keys_from_master(client.master_key)
@@ -42,8 +46,10 @@ async def handle_client(websocket: websockets.ServerConnection):
                 state.authenticated_clients[websocket] = client
                 
                 if action == "register":
-                    res_message = f"[CONNECTION {websocket.id}] {client.account.name} has been registered successfully"
+                    print(f"[CONNECTION {websocket.id}] {client.account.name} has been registered successfully")
+                    res_message = f"{client.account.name} has registered"
                 else:
+                    print(f"[CONNECTION {websocket.id}] {client.account.name} has logged in")
                     res_message = f"{client.account.name} has logged in"
                 
                 response = {
@@ -93,6 +99,9 @@ async def handle_client(websocket: websockets.ServerConnection):
                 # 6) Dispatch to the appropriate handler
                 if action in ACTION_HANDLERS:
                     account = await ACTION_HANDLERS[action](decrypted_message["data"])
+                    print(f"[CONNECTION {websocket.id}] Client {action} transaction was successful")
+                    log_transaction(account.user_id, action, datetime.now())
+                    
                     response = {
                         "status": "success",
                         "message": f"{action} transaction was successful",

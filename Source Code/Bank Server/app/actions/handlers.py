@@ -3,8 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..models.models import BalanceRequest, AccountAction, Account, AccountModel, EncryptedMessage, Client, ServerException
 from ..crud.accounts_crud import get_account, deposit, withdraw, create_user, authenticate_account
-from ..security.helpers import compute_master_secret, generate_nonce, encrypt_with_key, fetch_shared_key
-from ..memory import state
+from ..security.helpers import compute_master_secret, generate_nonce, fetch_shared_key
 
 #=======================================
 # Data validation helper functions
